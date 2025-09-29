@@ -54,6 +54,36 @@ const swaggerDefinition = {
           },
         },
       },
+      Listing: {
+        type: "object",
+        properties: {
+          _id: { type: "string" },
+          title: { type: "string" },
+          author: { type: "string" },
+          course: { type: "string" },
+          description: { type: "string" },
+          condition: { type: "string", enum: ["new", "like_new", "good", "fair", "poor"] },
+          price: { type: "number" },
+          imageUrl: { type: "string" },
+          seller: { $ref: "#/components/schemas/User" },
+          isSold: { type: "boolean" },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
+        },
+      },
+      ListingsListResponse: {
+        type: "object",
+        properties: {
+          page: { type: "integer" },
+          limit: { type: "integer" },
+          total: { type: "integer" },
+          pages: { type: "integer" },
+          listings: {
+            type: "array",
+            items: { $ref: "#/components/schemas/Listing" },
+          },
+        },
+      },
     },
   },
   paths: {
@@ -159,6 +189,86 @@ const swaggerDefinition = {
               "application/json": { schema: { $ref: "#/components/schemas/UsersListResponse" } },
             },
           },
+          401: { description: "Unauthorized" },
+        },
+      },
+    },
+    "/api/listings": {
+      get: {
+        tags: ["Listings"],
+        summary: "List listings with pagination and filters",
+        parameters: [
+          { in: "query", name: "page", schema: { type: "integer", default: 1 } },
+          { in: "query", name: "limit", schema: { type: "integer", default: 20 } },
+          { in: "query", name: "q", schema: { type: "string" } },
+          { in: "query", name: "minPrice", schema: { type: "number" } },
+          { in: "query", name: "maxPrice", schema: { type: "number" } },
+          { in: "query", name: "condition", schema: { type: "string", enum: ["new", "like_new", "good", "fair", "poor"] } },
+          { in: "query", name: "seller", schema: { type: "string" } },
+          { in: "query", name: "isSold", schema: { type: "string", enum: ["true", "false"] } },
+        ],
+        responses: {
+          200: {
+            description: "Success",
+            content: {
+              "application/json": { schema: { $ref: "#/components/schemas/ListingsListResponse" } },
+            },
+          },
+        },
+      },
+      post: {
+        tags: ["Listings"],
+        summary: "Create a new listing (multipart/form-data)",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "multipart/form-data": {
+              schema: {
+                type: "object",
+                properties: {
+                  title: { type: "string" },
+                  author: { type: "string" },
+                  course: { type: "string" },
+                  description: { type: "string" },
+                  condition: { type: "string", enum: ["new", "like_new", "good", "fair", "poor"] },
+                  price: { type: "number" },
+                  image: { type: "string", format: "binary" },
+                },
+                required: ["title", "price"],
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "Listing created",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Listing" } } },
+          },
+          401: { description: "Unauthorized" },
+        },
+      },
+    },
+    "/api/listings/{id}": {
+      get: {
+        tags: ["Listings"],
+        summary: "Get listing by id",
+        parameters: [
+          { in: "path", name: "id", required: true, schema: { type: "string" } },
+        ],
+        responses: {
+          200: { description: "Success", content: { "application/json": { schema: { $ref: "#/components/schemas/Listing" } } } },
+          404: { description: "Not Found" },
+        },
+      },
+    },
+    "/api/listings/me": {
+      get: {
+        tags: ["Listings"],
+        summary: "Get my listings",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: { description: "Success", content: { "application/json": { schema: { $ref: "#/components/schemas/ListingsListResponse" } } } },
           401: { description: "Unauthorized" },
         },
       },

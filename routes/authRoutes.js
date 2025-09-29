@@ -9,3 +9,5 @@ router.post("/login", loginUser);
 router.get("/me", authRequired, getMe);
 
 export default router;
+
+// collage-buddy
